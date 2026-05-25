@@ -624,7 +624,7 @@ def main() -> None:
         print(
             "[DICA] Detectei argumentos inválidos que parecem nomes de arquivo quebrados por espaço.\n"
             "       Se o caminho tiver espaços, use aspas.\n"
-            "       Ex.: python extrator/ctrb_extractor.py \"pasta/ARQUIVO COM ESPACO.pdf\""
+            "       Ex: python extrator/ctrb_extractor.py \"pasta/ARQUIVO COM ESPACO.pdf\""
         )
 
     for p in pdfs:
@@ -654,3 +654,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+ 
