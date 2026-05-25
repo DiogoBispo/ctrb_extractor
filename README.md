@@ -4,7 +4,11 @@ Extrator de dados estruturados de documentos CTRB em PDF para JSON.
 
 ## Visão geral
 
+<<<<<<< HEAD
 O script [`ctrb_extractor.py`] processa CTRBs usando `pdfplumber` e organiza os dados em blocos:
+=======
+O script [`extrator/ctrb_extractor.py`] processa CTRBs usando `pdfplumber` e organiza os dados em blocos:
+>>>>>>> 3464ffc (Adiciona suporte a argumentos de linha de comando e documentação ao README)
 
 - `cabecalho`
 - `contratante`
@@ -42,13 +46,33 @@ pip install pdfplumber
 Na raiz do projeto:
 
 ```bash
+<<<<<<< HEAD
 python ctrb_extractor.py "caminho/arquivo1.pdf" "caminho/arquivo2.pdf"
+=======
+python extrator/ctrb_extractor.py "caminho/arquivo1.pdf" "caminho/arquivo2.pdf"
+>>>>>>> 3464ffc (Adiciona suporte a argumentos de linha de comando e documentação ao README)
 ```
 
 Exemplo real com os arquivos deste repositório:
 
 ```bash
+<<<<<<< HEAD
 python ctrb_extractor.py caminho/*.pdf
+=======
+python extrator/ctrb_extractor.py "caminho/*.pdf"
+```
+
+Processar todos os PDFs de um diretório (sem informar cada arquivo):
+
+```bash
+python extrator/ctrb_extractor.py --input-dir caminho/
+```
+
+Somente listar os arquivos que seriam processados:
+
+```bash
+python extrator/ctrb_extractor.py --input-dir caminho/ --dry-run
+>>>>>>> 3464ffc (Adiciona suporte a argumentos de linha de comando e documentação ao README)
 ```
 
 ## Exemplo de estrutura de saída
@@ -103,5 +127,9 @@ python ctrb_extractor.py caminho/*.pdf
 
 ## Estrutura do projeto
 
+<<<<<<< HEAD
 - [`ctrb_extractor.py`]: extrator principal e CLI
+=======
+- [`extrator/ctrb_extractor.py`]: extrator principal e CLI
+>>>>>>> 3464ffc (Adiciona suporte a argumentos de linha de comando e documentação ao README)
 - `caminho/`: PDFs e imagens de exemplo

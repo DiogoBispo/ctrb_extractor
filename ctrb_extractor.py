@@ -14,6 +14,7 @@ Saída:
 import json
 import re
 import sys
+import argparse
 from pathlib import Path
 from typing import Optional
 
@@ -527,20 +528,106 @@ def build_output_name(data: dict) -> str:
 # CLI
 # ---------------------------------------------------------------------------
 
+def _looks_like_split_path_token(token: str) -> bool:
+    """Heurística para detectar token quebrado por falta de aspas no shell."""
+    if "/" in token or token.endswith(".pdf"):
+        return False
+    if token in {"-", "_"}:
+        return True
+    if re.fullmatch(r"[A-Za-z0-9À-ÿ.-]+", token) and len(token) >= 2:
+        return True
+    return False
+
+
+def _collect_input_pdfs(inputs: list[str], input_dir: Optional[str], pattern: str) -> list[Path]:
+    """Coleta PDFs a partir de caminhos, globs e/ou diretório."""
+    files: list[Path] = []
+
+    for raw in inputs:
+        p = Path(raw)
+
+        # Caminho existente (absoluto ou relativo)
+        if p.exists():
+            if p.is_file() and p.suffix.lower() == ".pdf":
+                files.append(p)
+            continue
+
+        # Permite glob explícito no argumento (ex.: pasta/*.pdf)
+        has_glob = any(ch in raw for ch in "*?[]")
+        if has_glob:
+            files.extend(sorted(Path().glob(raw)))
+
+    if input_dir:
+        base = Path(input_dir)
+        if base.exists() and base.is_dir():
+            files.extend(sorted(base.glob(pattern)))
+
+    # Remove duplicados preservando ordem
+    unique: list[Path] = []
+    seen: set[Path] = set()
+    for p in files:
+        rp = p.resolve()
+        if rp not in seen and p.is_file() and p.suffix.lower() == ".pdf":
+            unique.append(p)
+            seen.add(rp)
+    return unique
+
+
 def main() -> None:
-    if len(sys.argv) < 2:
-        print("Uso: python ctrb_extractor.py arquivo1.pdf [arquivo2.pdf ...]")
+    parser = argparse.ArgumentParser(
+        description="Extrai dados estruturados de CTRBs em PDF para JSON."
+    )
+    parser.add_argument(
+        "inputs",
+        nargs="*",
+        help="Arquivos PDF e/ou padrões glob (ex.: pasta/*.pdf).",
+    )
+    parser.add_argument(
+        "--input-dir",
+        dest="input_dir",
+        help="Diretório para buscar PDFs automaticamente.",
+    )
+    parser.add_argument(
+        "--pattern",
+        default="*.pdf",
+        help="Padrão de busca usado com --input-dir (default: *.pdf).",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Somente lista os PDFs que seriam processados, sem extrair.",
+    )
+    args = parser.parse_args()
+
+    if not args.inputs and not args.input_dir:
+        parser.print_help()
         sys.exit(1)
 
     output_dir = Path(__file__).parent
     results    = []
+    pdfs = _collect_input_pdfs(args.inputs, args.input_dir, args.pattern)
 
-    for pdf_path in sys.argv[1:]:
-        p = Path(pdf_path)
-        if not p.exists():
-            print(f"[ERRO] Arquivo não encontrado: {pdf_path}")
-            continue
+    if not pdfs:
+        print("[ERRO] Nenhum PDF válido encontrado para processar.")
+        sys.exit(1)
 
+    if args.dry_run:
+        print(f"{len(pdfs)} PDF(s) encontrado(s):")
+        for p in pdfs:
+            print(f"  - {p}")
+        return
+
+    # Aviso amigável para erro comum: path com espaços sem aspas.
+    missing_inputs = [raw for raw in args.inputs if not Path(raw).exists() and not any(ch in raw for ch in "*?[]")]
+    split_like = [tok for tok in missing_inputs if _looks_like_split_path_token(tok)]
+    if missing_inputs and split_like:
+        print(
+            "[DICA] Detectei argumentos inválidos que parecem nomes de arquivo quebrados por espaço.\n"
+            "       Se o caminho tiver espaços, use aspas.\n"
+            "       Ex.: python extrator/ctrb_extractor.py \"pasta/ARQUIVO COM ESPACO.pdf\""
+        )
+
+    for p in pdfs:
         print(f"\nProcessando: {p.name}")
         try:
             data = extract_ctrb(str(p))
