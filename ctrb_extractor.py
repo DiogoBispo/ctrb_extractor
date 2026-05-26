@@ -255,10 +255,14 @@ def parse_forma_pagamento(lines: dict, y_start: float, y_end: float) -> dict:
     pois o adiantamento tem label à esquerda e referência à direita.
     """
     result: dict = {
-        "adiantamento": {},
-        "adiantamento_ccf_os": None,
-        "saldo": None,
-        "saldo_referencia": None,
+        "saldo": "",
+        "saldo_referencia": "",
+        "adiantamento": {
+            "valor": "",
+            "referencia": "",
+            "condicao": "",
+        },
+        "adiantamento_ccf_os": "",
         "por_conta_transportadora": {},
     }
 
